@@ -9,6 +9,18 @@ import (
 	"time"
 )
 
+type Address struct {
+	ID             int32
+	UserID         int32
+	Title          string
+	PhoneNumber    string
+	Governorate    string
+	City           string
+	AddressDetails string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type User struct {
 	ID           int32
 	Name         string

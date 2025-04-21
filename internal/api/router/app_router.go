@@ -21,6 +21,7 @@ func InitRouter(cf *handlers.ApiConfig) *chi.Mux {
 	)
 	v1Router := chi.NewRouter()
 	handlers.RegisterUserRoutes(v1Router)
+	handlers.RegisterAddressRoutes(v1Router)
 
 	r.Mount("/v1", v1Router)
 
