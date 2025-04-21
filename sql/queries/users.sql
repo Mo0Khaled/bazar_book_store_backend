@@ -9,3 +9,8 @@ RETURNING *;
 
 SELECT * FROM users
 where id = $1;
+
+-- name: GetUserByEmail :one
+
+SELECT * FROM users
+where email = $1;

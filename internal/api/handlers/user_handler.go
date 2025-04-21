@@ -13,6 +13,8 @@ import (
 
 func RegisterUserRoutes(r chi.Router) {
 	r.Post("/register", Cfg.createUserHandler)
+	r.Post("/login", Cfg.loginUserHandler)
+
 }
 
 func (apiCFG *ApiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,4 +64,48 @@ func (apiCFG *ApiConfig) createUserHandler(w http.ResponseWriter, r *http.Reques
 		"message": "User created successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
+}
+
+func (apiCFG *ApiConfig) loginUserHandler(w http.ResponseWriter, r *http.Request) {
+	type parameters struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	params := &parameters{}
+	err := decoder.Decode(params)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err))
+		return
+	}
+
+	db := apiCFG.DB
+
+	user, err := db.GetUserByEmail(r.Context(), params.Email)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusForbidden, "Incorrect credentials")
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(params.Password))
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusForbidden, "Incorrect credentials")
+		return
+	}
+
+	userToken, err := helpers.GenerateJWT(user.ID)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response := map[string]interface{}{
+		"user":    models.DBUserToUser(user),
+		"token":   userToken,
+		"message": "User signed in successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
