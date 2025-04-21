@@ -4,14 +4,10 @@ import (
 	"bazar_book_store/helpers"
 	"bazar_book_store/internal/api/models"
 	"bazar_book_store/internal/database"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
-	"os"
-	"time"
-
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -53,12 +49,8 @@ func (apiCFG *ApiConfig) createUserHandler(w http.ResponseWriter, r *http.Reques
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":     user.ID,
-		"expiry_date": time.Now().Add(time.Hour * 24 * 7).Unix(), // صلاحية 24 ساعة
-	})
-	secretKey := os.Getenv("JWT_SECRET")
-	userToken, err := token.SignedString([]byte(secretKey))
+
+	userToken, err := helpers.GenerateJWT(user.ID)
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
