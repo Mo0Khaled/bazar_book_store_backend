@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 )
 
 func RegisterAddressRoutes(r chi.Router) {
 	r.Post("/addresses", AuthMiddleware(Cfg.createAddressHandler))
 	r.Get("/addresses", AuthMiddleware(Cfg.getAddressesHandler))
 	r.Put("/addresses", AuthMiddleware(Cfg.updateAddressHandler))
+	r.Delete("/addresses/{addressID}", AuthMiddleware(Cfg.deleteAddressHandler))
 
 }
 
@@ -119,6 +121,34 @@ func (apiCFG *ApiConfig) updateAddressHandler(w http.ResponseWriter, r *http.Req
 	response := map[string]interface{}{
 		"address": models.DBAddressToAddress(address),
 		"message": "Address updated successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusCreated, response)
+}
+
+func (apiCFG *ApiConfig) deleteAddressHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+
+	addressIDStr := chi.URLParam(r, "addressID")
+
+	addressID, err := strconv.Atoi(addressIDStr)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusForbidden, "wrong address ID")
+	}
+
+	db := apiCFG.DB
+
+	err = db.DeleteAddress(r.Context(), database.DeleteAddressParams{
+		ID:     int32(addressID),
+		UserID: user.ID,
+	})
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not delete address")
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Address deleted successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
 }

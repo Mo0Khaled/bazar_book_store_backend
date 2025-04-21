@@ -23,3 +23,9 @@ SET title           = COALESCE(@title, title),
 WHERE id = @id
   AND user_id = @user_id
 RETURNING *;
+
+-- name: DeleteAddress :exec
+DELETE
+FROM addresses
+WHERE id = $1
+  AND user_id = $2;

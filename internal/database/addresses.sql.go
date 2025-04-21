@@ -50,6 +50,23 @@ func (q *Queries) CreateAddress(ctx context.Context, arg CreateAddressParams) (A
 	return i, err
 }
 
+const deleteAddress = `-- name: DeleteAddress :exec
+DELETE
+FROM addresses
+WHERE id = $1
+  AND user_id = $2
+`
+
+type DeleteAddressParams struct {
+	ID     int32
+	UserID int32
+}
+
+func (q *Queries) DeleteAddress(ctx context.Context, arg DeleteAddressParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAddress, arg.ID, arg.UserID)
+	return err
+}
+
 const getAddresses = `-- name: GetAddresses :many
 
 SELECT id, user_id, title, phone_number, governorate, city, address_details, created_at, updated_at
