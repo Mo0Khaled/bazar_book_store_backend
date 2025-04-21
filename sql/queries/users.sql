@@ -1,0 +1,11 @@
+-- name: CreateUser :one
+
+INSERT INTO users
+    (id, name, email, password_hash, avatar_url)
+VALUES (DEFAULT, $1, $2, $3, $4)
+RETURNING *;
+
+-- name: GetUser :one
+
+SELECT * FROM users
+where id = $1;
