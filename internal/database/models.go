@@ -14,16 +14,19 @@ import (
 type AuthorTypeEnum string
 
 const (
-	AuthorTypeEnumAuthor      AuthorTypeEnum = "author"
-	AuthorTypeEnumCoAuthor    AuthorTypeEnum = "co_author"
-	AuthorTypeEnumEditor      AuthorTypeEnum = "editor"
-	AuthorTypeEnumTranslator  AuthorTypeEnum = "translator"
-	AuthorTypeEnumIllustrator AuthorTypeEnum = "illustrator"
-	AuthorTypeEnumForeword    AuthorTypeEnum = "foreword"
-	AuthorTypeEnumContributor AuthorTypeEnum = "contributor"
-	AuthorTypeEnumCompiler    AuthorTypeEnum = "compiler"
-	AuthorTypeEnumNarrator    AuthorTypeEnum = "narrator"
-	AuthorTypeEnumGhostwriter AuthorTypeEnum = "ghostwriter"
+	AuthorTypeEnumNovelist     AuthorTypeEnum = "Novelist"
+	AuthorTypeEnumPoet         AuthorTypeEnum = "Poet"
+	AuthorTypeEnumEssayist     AuthorTypeEnum = "Essayist"
+	AuthorTypeEnumBiographer   AuthorTypeEnum = "Biographer"
+	AuthorTypeEnumHistorian    AuthorTypeEnum = "Historian"
+	AuthorTypeEnumEditor       AuthorTypeEnum = "Editor"
+	AuthorTypeEnumTranslator   AuthorTypeEnum = "Translator"
+	AuthorTypeEnumResearcher   AuthorTypeEnum = "Researcher"
+	AuthorTypeEnumPlaywright   AuthorTypeEnum = "Playwright"
+	AuthorTypeEnumCritic       AuthorTypeEnum = "Critic"
+	AuthorTypeEnumColumnist    AuthorTypeEnum = "Columnist"
+	AuthorTypeEnumJournalist   AuthorTypeEnum = "Journalist"
+	AuthorTypeEnumScreenwriter AuthorTypeEnum = "Screenwriter"
 )
 
 func (e *AuthorTypeEnum) Scan(src interface{}) error {
@@ -94,6 +97,11 @@ type Book struct {
 	Rate        string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+type BookAuthor struct {
+	BookID   int32
+	AuthorID int32
 }
 
 type BookCategory struct {

@@ -26,6 +26,7 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		Price       float64 `json:"price"`
 		Rate        float64 `json:"rate"`
 		Categories  []int32 `json:"categories"`
+		AuthorsIDs  []int32 `json:"authors_ids"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -81,6 +82,19 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 				fmt.Println(err)
 			}
 		}
+	}
+
+	var invalidAuthorsIDs []int32
+	for _, authorID := range params.AuthorsIDs {
+		err := db.AddBookAuthor(r.Context(), database.AddBookAuthorParams{
+			BookID:   book.ID,
+			AuthorID: authorID,
+		})
+
+		if err != nil {
+			fmt.Println(err)
+			invalidAuthorsIDs = append(invalidAuthorsIDs, authorID)
+		}
 
 	}
 
@@ -89,8 +103,8 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		"categories": models.DBCategoriesToCategories(validCategories),
 		"message":    "Book created successfully",
 	}
-	if len(invalidCategories) > 0 {
-		response["warning"] = fmt.Sprintf("The following categories do not exist: %v", invalidCategories)
+	if len(invalidCategories) > 0 || len(invalidAuthorsIDs) > 0 {
+		response["warning"] = fmt.Sprintf("The following categories/authors do not exist: %v %v", invalidCategories, invalidAuthorsIDs)
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
 }

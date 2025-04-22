@@ -7,3 +7,7 @@ RETURNING *;
 -- name: AddBookCategory :exec
 INSERT INTO book_categories (book_id, category_id)
 VALUES ($1, $2);
+
+-- name: AddBookAuthor :exec
+INSERT INTO book_authors (book_id, author_id)
+VALUES ($1, $2);
