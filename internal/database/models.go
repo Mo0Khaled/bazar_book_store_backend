@@ -29,6 +29,7 @@ type User struct {
 	AvatarUrl    sql.NullString
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	IsAdmin      bool
 }
 
 type Vendor struct {

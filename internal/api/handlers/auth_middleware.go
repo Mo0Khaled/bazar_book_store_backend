@@ -57,3 +57,13 @@ func AuthMiddleware(handler authedHandler) http.HandlerFunc {
 		handler(w, r, user)
 	}
 }
+
+func AdminOnlyMiddleware(handler authedHandler) http.HandlerFunc {
+	return AuthMiddleware(func(w http.ResponseWriter, r *http.Request, user database.User) {
+		if !user.IsAdmin {
+			helpers.RespondWithError(w, http.StatusForbidden, "You don't have access to this API")
+			return
+		}
+		handler(w, r, user)
+	})
+}

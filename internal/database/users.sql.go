@@ -13,9 +13,9 @@ import (
 const createUser = `-- name: CreateUser :one
 
 INSERT INTO users
-    (id, name, email, password_hash, avatar_url)
-VALUES (DEFAULT, $1, $2, $3, $4)
-RETURNING id, name, email, password_hash, avatar_url, created_at, updated_at
+    (id, name, email, password_hash, avatar_url, is_admin)
+VALUES (DEFAULT, $1, $2, $3, $4,$5)
+RETURNING id, name, email, password_hash, avatar_url, created_at, updated_at, is_admin
 `
 
 type CreateUserParams struct {
@@ -23,6 +23,7 @@ type CreateUserParams struct {
 	Email        string
 	PasswordHash string
 	AvatarUrl    sql.NullString
+	IsAdmin      bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -31,6 +32,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Email,
 		arg.PasswordHash,
 		arg.AvatarUrl,
+		arg.IsAdmin,
 	)
 	var i User
 	err := row.Scan(
@@ -41,13 +43,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
 
-SELECT id, name, email, password_hash, avatar_url, created_at, updated_at FROM users
+SELECT id, name, email, password_hash, avatar_url, created_at, updated_at, is_admin
+FROM users
 where id = $1
 `
 
@@ -62,13 +66,15 @@ func (q *Queries) GetUser(ctx context.Context, id int32) (User, error) {
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
 
-SELECT id, name, email, password_hash, avatar_url, created_at, updated_at FROM users
+SELECT id, name, email, password_hash, avatar_url, created_at, updated_at, is_admin
+FROM users
 where email = $1
 `
 
@@ -83,6 +89,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.AvatarUrl,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IsAdmin,
 	)
 	return i, err
 }

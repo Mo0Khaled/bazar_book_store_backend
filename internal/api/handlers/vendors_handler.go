@@ -14,10 +14,7 @@ import (
 )
 
 func RegisterVendorsRoutes(r chi.Router) {
-	r.Post("/vendors", AuthMiddleware(Cfg.createVendorHandler))
-	//r.Get("/vendors", AuthMiddleware(Cfg.getAddressesHandler))
-	//r.Put("/vendors", AuthMiddleware(Cfg.updateAddressHandler))
-	//r.Delete("/vendors/{vendorID}", AuthMiddleware(Cfg.deleteAddressHandler))
+	r.Post("/vendors", AdminOnlyMiddleware(Cfg.createVendorHandler))
 
 }
 

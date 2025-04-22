@@ -8,5 +8,6 @@
     <file url="file://$PROJECT_DIR$/sql/schema/00002_alter_user_table_make_email_unique.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00003_create_addresses_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00004_create_vendors_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/00005_alter_table_users_add_is_admin.sql" dialect="PostgreSQL" />
   </component>
 </project>

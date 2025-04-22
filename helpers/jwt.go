@@ -10,6 +10,7 @@ func GenerateJWT(userID int32) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":     userID,
 		"expiry_date": time.Now().Add(time.Hour * 24 * 7).Unix(),
+		"is_admin":    false,
 	})
 
 	secret := os.Getenv("JWT_SECRET")
