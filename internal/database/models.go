@@ -6,8 +6,60 @@ package database
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"time"
 )
+
+type AuthorTypeEnum string
+
+const (
+	AuthorTypeEnumAuthor      AuthorTypeEnum = "author"
+	AuthorTypeEnumCoAuthor    AuthorTypeEnum = "co_author"
+	AuthorTypeEnumEditor      AuthorTypeEnum = "editor"
+	AuthorTypeEnumTranslator  AuthorTypeEnum = "translator"
+	AuthorTypeEnumIllustrator AuthorTypeEnum = "illustrator"
+	AuthorTypeEnumForeword    AuthorTypeEnum = "foreword"
+	AuthorTypeEnumContributor AuthorTypeEnum = "contributor"
+	AuthorTypeEnumCompiler    AuthorTypeEnum = "compiler"
+	AuthorTypeEnumNarrator    AuthorTypeEnum = "narrator"
+	AuthorTypeEnumGhostwriter AuthorTypeEnum = "ghostwriter"
+)
+
+func (e *AuthorTypeEnum) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuthorTypeEnum(s)
+	case string:
+		*e = AuthorTypeEnum(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuthorTypeEnum: %T", src)
+	}
+	return nil
+}
+
+type NullAuthorTypeEnum struct {
+	AuthorTypeEnum AuthorTypeEnum
+	Valid          bool // Valid is true if AuthorTypeEnum is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuthorTypeEnum) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuthorTypeEnum, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuthorTypeEnum.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuthorTypeEnum) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuthorTypeEnum), nil
+}
 
 type Address struct {
 	ID             int32
@@ -19,6 +71,18 @@ type Address struct {
 	AddressDetails string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type Author struct {
+	ID               int32
+	Name             string
+	ShortDescription string
+	About            string
+	AvatarUrl        sql.NullString
+	AuthorType       AuthorTypeEnum
+	Rate             string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type Book struct {
