@@ -32,6 +32,13 @@ type Book struct {
 	UpdatedAt   time.Time
 }
 
+type Category struct {
+	ID        int32
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID           int32
 	Name         string

@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -29,4 +30,15 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 		log.Printf("failed to write response with error %e\n", err)
 		return
 	}
+}
+
+func DecodeBody[T any](w http.ResponseWriter, r *http.Request) (*T, bool) {
+	decoder := json.NewDecoder(r.Body)
+	var params T
+	err := decoder.Decode(&params)
+	if err != nil {
+		RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err))
+		return nil, false
+	}
+	return &params, true
 }

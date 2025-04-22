@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/sql/queries/addresses.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/books.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/queries/categories.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/users.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/vendors.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00001_create_user_table.sql" dialect="PostgreSQL" />
@@ -11,5 +12,6 @@
     <file url="file://$PROJECT_DIR$/sql/schema/00004_create_vendors_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00005_alter_table_users_add_is_admin.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00006_create_books_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/00007_create_categories_table.sql" dialect="PostgreSQL" />
   </component>
 </project>
