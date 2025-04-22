@@ -9,6 +9,21 @@ import (
 	"context"
 )
 
+const addBookCategory = `-- name: AddBookCategory :exec
+INSERT INTO book_categories (book_id, category_id)
+VALUES ($1, $2)
+`
+
+type AddBookCategoryParams struct {
+	BookID     int32
+	CategoryID int32
+}
+
+func (q *Queries) AddBookCategory(ctx context.Context, arg AddBookCategoryParams) error {
+	_, err := q.db.ExecContext(ctx, addBookCategory, arg.BookID, arg.CategoryID)
+	return err
+}
+
 const createBook = `-- name: CreateBook :one
 
 INSERT INTO books (vendor_id, title, description, price, rate)

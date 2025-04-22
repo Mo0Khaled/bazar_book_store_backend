@@ -25,6 +25,7 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 		Rate        float64 `json:"rate"`
+		Categories  []int32 `json:"categories"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -49,8 +50,6 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) {
-			fmt.Println(pqErr.Code.Name())
-			fmt.Println(pqErr.Constraint)
 			switch pqErr.Code.Name() {
 			case "foreign_key_violation":
 				if pqErr.Constraint == "books_vendor_id_fkey" {
@@ -63,9 +62,35 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	var invalidCategories []int32
+	var validCategories []database.Category
+
+	for _, categoryID := range params.Categories {
+		category, err := db.GetCategoryByID(r.Context(), categoryID)
+		if err != nil {
+			invalidCategories = append(invalidCategories, categoryID)
+		} else {
+			validCategories = append(validCategories, category)
+			err = db.AddBookCategory(r.Context(), database.AddBookCategoryParams{
+				BookID:     book.ID,
+				CategoryID: category.ID,
+			})
+
+			if err != nil {
+				// TODO: i think i should think of undo the created book.
+				fmt.Println(err)
+			}
+		}
+
+	}
+
 	response := map[string]interface{}{
-		"book":    models.DBBookToBook(book),
-		"message": "Book created successfully",
+		"book":       models.DBBookToBook(book),
+		"categories": models.DBCategoriesToCategories(validCategories),
+		"message":    "Book created successfully",
+	}
+	if len(invalidCategories) > 0 {
+		response["warning"] = fmt.Sprintf("The following categories do not exist: %v", invalidCategories)
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
 }

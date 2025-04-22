@@ -23,7 +23,7 @@ func DBBookToBook(dbBook database.Book) Book {
 		rateValue = 1.0
 	}
 
-	priceValue, err := strconv.ParseFloat(dbBook.Rate, 64)
+	priceValue, err := strconv.ParseFloat(dbBook.Price, 64)
 	if err != nil {
 		priceValue = 0.0
 	}

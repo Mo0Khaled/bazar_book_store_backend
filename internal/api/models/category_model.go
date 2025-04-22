@@ -20,3 +20,13 @@ func DBCategoryToCategory(dbCategory database.Category) Category {
 		UpdatedAt: dbCategory.UpdatedAt,
 	}
 }
+
+func DBCategoriesToCategories(dbCategories []database.Category) []Category {
+	categories := make([]Category, len(dbCategories))
+
+	for i, dbCategory := range dbCategories {
+		categories[i] = DBCategoryToCategory(dbCategory)
+	}
+
+	return categories
+}
