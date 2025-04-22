@@ -21,6 +21,17 @@ type Address struct {
 	UpdatedAt      time.Time
 }
 
+type Book struct {
+	ID          int32
+	VendorID    int32
+	Title       string
+	Description string
+	Price       string
+	Rate        string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
 type User struct {
 	ID           int32
 	Name         string
