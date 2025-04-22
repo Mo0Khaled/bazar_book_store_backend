@@ -29,3 +29,12 @@ func DBVendorToVendor(dbVendor database.Vendor) Vendor {
 		UpdatedAt: dbVendor.UpdatedAt,
 	}
 }
+
+func DBVendorsToVendors(dbVendors []database.Vendor) []Vendor {
+	vendors := make([]Vendor, len(dbVendors))
+
+	for i, dbVendor := range dbVendors {
+		vendors[i] = DBVendorToVendor(dbVendor)
+	}
+	return vendors
+}

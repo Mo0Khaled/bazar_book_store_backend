@@ -29,9 +29,9 @@ func DBAddressToAddress(dbUser database.Address) Address {
 	}
 }
 
-func DBAddressesToAddresses(dbUser []database.Address) []Address {
-	addresses := make([]Address, len(dbUser))
-	for i, dbAddress := range dbUser {
+func DBAddressesToAddresses(dbAddresses []database.Address) []Address {
+	addresses := make([]Address, len(dbAddresses))
+	for i, dbAddress := range dbAddresses {
 		addresses[i] = DBAddressToAddress(dbAddress)
 	}
 	return addresses

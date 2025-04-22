@@ -15,6 +15,7 @@ import (
 
 func RegisterVendorsRoutes(r chi.Router) {
 	r.Post("/vendors", AdminOnlyMiddleware(Cfg.createVendorHandler))
+	r.Get("/vendors", Cfg.getVendorsHandler)
 
 }
 
@@ -67,4 +68,21 @@ func (apiCFG *ApiConfig) createVendorHandler(w http.ResponseWriter, r *http.Requ
 		"message": "Vendor created successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
+}
+
+func (apiCFG *ApiConfig) getVendorsHandler(w http.ResponseWriter, r *http.Request) {
+	db := apiCFG.DB
+
+	vendors, err := db.GetVendors(r.Context())
+
+	if err != nil {
+		helpers.RespondWithJSON(w, http.StatusBadRequest, "Couldn't fetch vendors")
+		return
+	}
+
+	response := map[string]interface{}{
+		"vendors": models.DBVendorsToVendors(vendors),
+		"message": "Vendors fetched successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
