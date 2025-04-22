@@ -30,3 +30,12 @@ type User struct {
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
 }
+
+type Vendor struct {
+	ID        int32
+	Name      string
+	AvatarUrl string
+	Rate      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
