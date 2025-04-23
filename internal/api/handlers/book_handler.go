@@ -4,6 +4,7 @@ import (
 	"bazar_book_store/helpers"
 	"bazar_book_store/internal/api/models"
 	"bazar_book_store/internal/database"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +16,8 @@ import (
 
 func RegisterBooksRoutes(r chi.Router) {
 	r.Post("/books", AdminOnlyMiddleware(Cfg.createBookHandler))
-	r.Get("/books", AdminOnlyMiddleware(Cfg.getBooksHandler))
+	r.Get("/books", AuthMiddleware(Cfg.getBooksHandler))
+	r.Get("/books_details", AuthMiddleware(Cfg.getBooksDetailsHandler))
 
 }
 
@@ -132,6 +134,29 @@ func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request,
 
 	response := map[string]interface{}{
 		"books":   models.DBBooksToBooks(books),
+		"message": "Books gotten successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+
+	db := apiCFG.DB
+
+	booksDetails, err := db.GetBooksDetails(r.Context(), database.GetBooksDetailsParams{
+		CategoryID: sql.NullInt32{},
+		VendorID:   sql.NullInt32{},
+		AuthorID:   sql.NullInt32{},
+		BookID:     sql.NullInt32{},
+	})
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not fetch books")
+		return
+	}
+
+	response := map[string]interface{}{
+		"books":   models.DBBooksDetailsToBooksDetails(booksDetails),
 		"message": "Books gotten successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusOK, response)
