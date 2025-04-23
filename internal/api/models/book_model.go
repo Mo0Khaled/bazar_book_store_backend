@@ -39,3 +39,13 @@ func DBBookToBook(dbBook database.Book) Book {
 		UpdatedAt:   dbBook.UpdatedAt,
 	}
 }
+
+func DBBooksToBooks(dbBooks []database.Book) []Book {
+	books := make([]Book, len(dbBooks))
+
+	for i, dbBook := range dbBooks {
+		books[i] = DBBookToBook(dbBook)
+	}
+
+	return books
+}

@@ -15,10 +15,11 @@ import (
 
 func RegisterBooksRoutes(r chi.Router) {
 	r.Post("/books", AdminOnlyMiddleware(Cfg.createBookHandler))
+	r.Get("/books", AdminOnlyMiddleware(Cfg.getBooksHandler))
 
 }
 
-func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
 	type parameters struct {
 		VendorID    int32   `json:"vendor_id"`
 		Title       string  `json:"title"`
@@ -116,4 +117,22 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		response["warning"] = fmt.Sprintf("The following categories/authors do not exist: %v %v", invalidCategories, invalidAuthorsIDs)
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
+}
+
+func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+
+	db := apiCFG.DB
+
+	books, err := db.GetBooks(r.Context())
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not fetch books")
+		return
+	}
+
+	response := map[string]interface{}{
+		"books":   models.DBBooksToBooks(books),
+		"message": "Books gotten successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
 }

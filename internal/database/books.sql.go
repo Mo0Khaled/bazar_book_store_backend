@@ -75,3 +75,42 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 	)
 	return i, err
 }
+
+const getBooks = `-- name: GetBooks :many
+
+SELECT id, vendor_id, title, description, price, rate, created_at, updated_at
+FROM books
+ORDER BY id DESC
+`
+
+func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, getBooks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Book
+	for rows.Next() {
+		var i Book
+		if err := rows.Scan(
+			&i.ID,
+			&i.VendorID,
+			&i.Title,
+			&i.Description,
+			&i.Price,
+			&i.Rate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
