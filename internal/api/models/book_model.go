@@ -62,6 +62,8 @@ func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) 
 	// Create maps to group authors and categories by BookID
 	bookAuthors := make(map[int32][]Author)
 	bookCategories := make(map[int32][]Category)
+	bookCategoryIDs := make(map[int32]map[int32]struct{})
+	bookAuthorIDs := make(map[int32]map[int32]struct{})
 
 	// Loop through dbBooksDetails and accumulate data
 	for _, dbBookDetails := range dbBooksDetails {
@@ -85,26 +87,41 @@ func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) 
 
 		// Add author to map of authors for the current book
 		if dbBookDetails.AuthorID.Valid {
-			author := DBAuthorToAuthor(database.Author{
-				ID:               dbBookDetails.AuthorID.Int32,
-				Name:             dbBookDetails.AuthorName.String,
-				ShortDescription: dbBookDetails.AuthorShortDescription.String,
-				About:            dbBookDetails.AuthorAbout.String,
-				AvatarUrl:        dbBookDetails.AuthorAvatarUrl,
-				Rate:             dbBookDetails.AuthorRate.String,
-				AuthorType:       dbBookDetails.AuthorType.AuthorTypeEnum,
-			})
-			bookAuthors[bookID] = append(bookAuthors[bookID], author)
+			authorID := dbBookDetails.AuthorID.Int32
+			if _, ok := bookAuthorIDs[bookID]; !ok {
+				bookAuthorIDs[bookID] = make(map[int32]struct{})
+			}
+			if _, exists := bookAuthorIDs[bookID][authorID]; !exists {
+				author := DBAuthorToAuthor(database.Author{
+					ID:               authorID,
+					Name:             dbBookDetails.AuthorName.String,
+					ShortDescription: dbBookDetails.AuthorShortDescription.String,
+					About:            dbBookDetails.AuthorAbout.String,
+					AvatarUrl:        dbBookDetails.AuthorAvatarUrl,
+					Rate:             dbBookDetails.AuthorRate.String,
+					AuthorType:       dbBookDetails.AuthorType.AuthorTypeEnum,
+				})
+				bookAuthors[bookID] = append(bookAuthors[bookID], author)
+				bookAuthorIDs[bookID][authorID] = struct{}{}
+			}
+
 		}
 
 		// Add category to map of categories for the current book
 
 		if dbBookDetails.CategoryID.Valid {
-			category := DBCategoryToCategory(database.Category{
-				ID:   dbBookDetails.CategoryID.Int32,
-				Name: dbBookDetails.CategoryName.String,
-			})
-			bookCategories[bookID] = append(bookCategories[bookID], category)
+			categoryID := dbBookDetails.CategoryID.Int32
+			if _, ok := bookCategoryIDs[bookID]; !ok {
+				bookCategoryIDs[bookID] = make(map[int32]struct{})
+			}
+
+			if _, exists := bookCategoryIDs[bookID][categoryID]; !exists {
+				bookCategories[bookID] = append(bookCategories[bookID], DBCategoryToCategory(database.Category{
+					ID:   categoryID,
+					Name: dbBookDetails.CategoryName.String,
+				}))
+				bookCategoryIDs[bookID][categoryID] = struct{}{}
+			}
 		}
 	}
 

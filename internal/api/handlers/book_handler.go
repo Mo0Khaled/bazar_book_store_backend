@@ -4,7 +4,6 @@ import (
 	"bazar_book_store/helpers"
 	"bazar_book_store/internal/api/models"
 	"bazar_book_store/internal/database"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -140,14 +139,18 @@ func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request,
 }
 
 func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+	categoryID := helpers.StringToNullInt32(r.URL.Query().Get("category_id"))
+	vendorID := helpers.StringToNullInt32(r.URL.Query().Get("vendor_id"))
+	authorID := helpers.StringToNullInt32(r.URL.Query().Get("author_id"))
+	bookID := helpers.StringToNullInt32(r.URL.Query().Get("book_id"))
 
 	db := apiCFG.DB
 
 	booksDetails, err := db.GetBooksDetails(r.Context(), database.GetBooksDetailsParams{
-		CategoryID: sql.NullInt32{},
-		VendorID:   sql.NullInt32{},
-		AuthorID:   sql.NullInt32{},
-		BookID:     sql.NullInt32{},
+		CategoryID: categoryID,
+		VendorID:   vendorID,
+		AuthorID:   authorID,
+		BookID:     bookID,
 	})
 
 	if err != nil {
@@ -155,9 +158,18 @@ func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	response := map[string]interface{}{
-		"books":   models.DBBooksDetailsToBooksDetails(booksDetails),
-		"message": "Books gotten successfully",
+	books := models.DBBooksDetailsToBooksDetails(booksDetails)
+
+	if len(books) == 1 && bookID.Valid {
+		helpers.RespondWithJSON(w, http.StatusOK, &books[0])
+	} else {
+		if len(books) == 0 {
+			books = []models.BookDetails{}
+		}
+		response := map[string]interface{}{
+			"books":   books,
+			"message": "Books gotten successfully",
+		}
+		helpers.RespondWithJSON(w, http.StatusOK, response)
 	}
-	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
