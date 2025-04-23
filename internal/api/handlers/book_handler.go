@@ -38,6 +38,15 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if len(params.Categories) == 0 {
+		helpers.RespondWithError(w, http.StatusBadRequest, "You must add atLeast one category")
+		return
+	}
+	if len(params.AuthorsIDs) == 0 {
+		helpers.RespondWithError(w, http.StatusBadRequest, "You must add atLeast one author")
+		return
+	}
+
 	db := apiCFG.DB
 
 	book, err := db.CreateBook(r.Context(), database.CreateBookParams{
