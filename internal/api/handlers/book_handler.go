@@ -140,7 +140,7 @@ func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request,
 	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
 
-func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	categoryID := helpers.StringToNullInt32(r.URL.Query().Get("category_id"))
 	vendorID := helpers.StringToNullInt32(r.URL.Query().Get("vendor_id"))
 	authorID := helpers.StringToNullInt32(r.URL.Query().Get("author_id"))
@@ -153,6 +153,7 @@ func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.R
 		VendorID:   vendorID,
 		AuthorID:   authorID,
 		BookID:     bookID,
+		UserID:     user.ID,
 	})
 
 	if err != nil {

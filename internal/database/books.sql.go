@@ -133,30 +133,32 @@ func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
 
 const getBooksDetails = `-- name: GetBooksDetails :many
 
-SELECT b.id                AS book_id,
+SELECT b.id                     AS book_id,
        b.title,
        b.description,
        b.price,
        b.rate,
        b.vendor_id,
+       CASE WHEN bf.user_id IS NOT NULL THEN true ELSE false END AS is_favorite,
        b.created_at,
        b.updated_at,
 
-       v.id                AS vendor_id,
-       v.name              AS vendor_name,
-       v.avatar_url        AS vendor_avatar_url,
-       v.rate              AS vendor_rate,
 
-       a.id                AS author_id,
-       a.name              AS author_name,
-       a.short_description AS author_short_description,
-       a.about             AS author_about,
-       a.avatar_url        AS author_avatar_url,
-       a.rate              AS author_rate,
+       v.id                     AS vendor_id,
+       v.name                   AS vendor_name,
+       v.avatar_url             AS vendor_avatar_url,
+       v.rate                   AS vendor_rate,
+
+       a.id                     AS author_id,
+       a.name                   AS author_name,
+       a.short_description      AS author_short_description,
+       a.about                  AS author_about,
+       a.avatar_url             AS author_avatar_url,
+       a.rate                   AS author_rate,
        a.author_type,
 
-       c.id                AS category_id,
-       c.name              AS category_name
+       c.id                     AS category_id,
+       c.name                   AS category_name
 
 FROM books b
          JOIN vendors v ON b.vendor_id = v.id
@@ -164,13 +166,17 @@ FROM books b
          LEFT JOIN authors a ON a.id = ba.author_id
          LEFT JOIN book_categories bc ON b.id = bc.book_id
          LEFT JOIN categories c ON c.id = bc.category_id
-WHERE ($1::int IS NULL OR c.id = $1)
-  AND ($2::int IS NULL OR b.vendor_id = $2)
-  AND ($3::int IS NULL OR a.id = $3)
-  AND ($4::int IS NULL OR b.id = $4)
+         LEFT JOIN book_favorites bf
+                   ON b.id = bf.book_id
+                       AND user_id = $1
+WHERE ($2::int IS NULL OR c.id = $2)
+  AND ($3::int IS NULL OR b.vendor_id = $3)
+  AND ($4::int IS NULL OR a.id = $4)
+  AND ($5::int IS NULL OR b.id = $5)
 `
 
 type GetBooksDetailsParams struct {
+	UserID     int32
 	CategoryID sql.NullInt32
 	VendorID   sql.NullInt32
 	AuthorID   sql.NullInt32
@@ -184,6 +190,7 @@ type GetBooksDetailsRow struct {
 	Price                  string
 	Rate                   string
 	VendorID               int32
+	IsFavorite             bool
 	CreatedAt              time.Time
 	UpdatedAt              time.Time
 	VendorID_2             int32
@@ -203,6 +210,7 @@ type GetBooksDetailsRow struct {
 
 func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams) ([]GetBooksDetailsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getBooksDetails,
+		arg.UserID,
 		arg.CategoryID,
 		arg.VendorID,
 		arg.AuthorID,
@@ -222,6 +230,7 @@ func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams
 			&i.Price,
 			&i.Rate,
 			&i.VendorID,
+			&i.IsFavorite,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.VendorID_2,

@@ -13,6 +13,7 @@ type Book struct {
 	Description string    `json:"description,omitempty"`
 	Price       float64   `json:"price"`
 	Rate        float64   `json:"rate,omitempty"`
+	IsFavorite  *bool     `json:"is_favorite,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
@@ -85,7 +86,7 @@ func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) 
 
 		// Create the Book object only if it doesn't exist already in booksMap
 		if _, exists := booksMap[bookID]; !exists {
-			booksMap[bookID] = BookDetails{
+			bookDetails := BookDetails{
 				Book: DBBookToBook(database.Book{
 					ID:          dbBookDetails.BookID,
 					VendorID:    dbBookDetails.VendorID,
@@ -97,6 +98,8 @@ func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) 
 					UpdatedAt:   dbBookDetails.UpdatedAt,
 				}),
 			}
+			bookDetails.Book.IsFavorite = &dbBookDetails.IsFavorite
+			booksMap[bookID] = bookDetails
 		}
 
 		// Add author to map of authors for the current book
