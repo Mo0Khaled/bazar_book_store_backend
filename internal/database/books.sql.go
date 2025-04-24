@@ -41,6 +41,21 @@ func (q *Queries) AddBookCategory(ctx context.Context, arg AddBookCategoryParams
 	return err
 }
 
+const addBookFavorite = `-- name: AddBookFavorite :exec
+INSERT INTO book_favorites (user_id, book_id)
+VALUES ($1, $2)
+`
+
+type AddBookFavoriteParams struct {
+	UserID int32
+	BookID int32
+}
+
+func (q *Queries) AddBookFavorite(ctx context.Context, arg AddBookFavoriteParams) error {
+	_, err := q.db.ExecContext(ctx, addBookFavorite, arg.UserID, arg.BookID)
+	return err
+}
+
 const createBook = `-- name: CreateBook :one
 
 INSERT INTO books (vendor_id, title, description, price, rate)
@@ -234,4 +249,19 @@ func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeBookFavorite = `-- name: RemoveBookFavorite :exec
+DELETE FROM book_favorites
+WHERE user_id = $1 AND book_id = $2
+`
+
+type RemoveBookFavoriteParams struct {
+	UserID int32
+	BookID int32
+}
+
+func (q *Queries) RemoveBookFavorite(ctx context.Context, arg RemoveBookFavoriteParams) error {
+	_, err := q.db.ExecContext(ctx, removeBookFavorite, arg.UserID, arg.BookID)
+	return err
 }

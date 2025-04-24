@@ -17,7 +17,7 @@ func RegisterBooksRoutes(r chi.Router) {
 	r.Post("/books", AdminOnlyMiddleware(Cfg.createBookHandler))
 	r.Get("/books", AuthMiddleware(Cfg.getBooksHandler))
 	r.Get("/books_details", AuthMiddleware(Cfg.getBooksDetailsHandler))
-
+	r.Post("/book_favorite", AuthMiddleware(Cfg.updateBookFavoriteHandler))
 }
 
 func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
@@ -172,4 +172,50 @@ func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.R
 		}
 		helpers.RespondWithJSON(w, http.StatusOK, response)
 	}
+}
+
+func (apiCFG *ApiConfig) updateBookFavoriteHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	type parameters struct {
+		BookID int32  `json:"book_id"`
+		Action string `json:"action"`
+	}
+
+	params, ok := helpers.DecodeBody[parameters](w, r)
+	if !ok {
+		return
+	}
+
+	db := apiCFG.DB
+	var err error
+	switch params.Action {
+	case "add":
+		err = db.AddBookFavorite(r.Context(), database.AddBookFavoriteParams{
+			UserID: user.ID,
+			BookID: params.BookID,
+		})
+	case "remove":
+		err = db.RemoveBookFavorite(r.Context(), database.RemoveBookFavoriteParams{
+			UserID: user.ID,
+			BookID: params.BookID,
+		})
+	default:
+		helpers.RespondWithError(w, http.StatusInternalServerError, "action must be add or remove.")
+		return
+	}
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not add/remove book to favorites list")
+		return
+	}
+
+	response := map[string]interface{}{}
+
+	if params.Action == "add" {
+		response["message"] = "Book added to favorites successfully"
+		helpers.RespondWithJSON(w, http.StatusCreated, response)
+	} else {
+		response["message"] = "Book removed from favorites successfully"
+		helpers.RespondWithJSON(w, http.StatusOK, response)
+	}
+
 }

@@ -109,6 +109,11 @@ type BookCategory struct {
 	CategoryID int32
 }
 
+type BookFavorite struct {
+	UserID int32
+	BookID int32
+}
+
 type Category struct {
 	ID        int32
 	Name      string

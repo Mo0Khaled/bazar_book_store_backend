@@ -12,6 +12,14 @@ VALUES ($1, $2);
 INSERT INTO book_authors (book_id, author_id)
 VALUES ($1, $2);
 
+-- name: AddBookFavorite :exec
+INSERT INTO book_favorites (user_id, book_id)
+VALUES ($1, $2);
+
+-- name: RemoveBookFavorite :exec
+DELETE FROM book_favorites
+WHERE user_id = $1 AND book_id = $2;
+
 -- name: GetBooks :many
 SELECT *
 FROM books
