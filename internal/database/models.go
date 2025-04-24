@@ -110,8 +110,9 @@ type BookCategory struct {
 }
 
 type BookFavorite struct {
-	UserID int32
-	BookID int32
+	UserID    int32
+	BookID    int32
+	CreatedAt time.Time
 }
 
 type Category struct {

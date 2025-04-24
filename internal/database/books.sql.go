@@ -251,9 +251,48 @@ func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams
 	return items, nil
 }
 
+const getFavoriteBooks = `-- name: GetFavoriteBooks :many
+
+SELECT id, title, price
+From books
+         JOIN book_favorites ON book_favorites.user_id = $1 AND books.id = book_favorites.book_id
+ORDER BY book_favorites.created_at DESC
+`
+
+type GetFavoriteBooksRow struct {
+	ID    int32
+	Title string
+	Price string
+}
+
+func (q *Queries) GetFavoriteBooks(ctx context.Context, userID int32) ([]GetFavoriteBooksRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFavoriteBooks, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFavoriteBooksRow
+	for rows.Next() {
+		var i GetFavoriteBooksRow
+		if err := rows.Scan(&i.ID, &i.Title, &i.Price); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const removeBookFavorite = `-- name: RemoveBookFavorite :exec
-DELETE FROM book_favorites
-WHERE user_id = $1 AND book_id = $2
+DELETE
+FROM book_favorites
+WHERE user_id = $1
+  AND book_id = $2
 `
 
 type RemoveBookFavoriteParams struct {

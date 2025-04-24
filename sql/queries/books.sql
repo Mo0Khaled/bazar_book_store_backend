@@ -17,8 +17,10 @@ INSERT INTO book_favorites (user_id, book_id)
 VALUES ($1, $2);
 
 -- name: RemoveBookFavorite :exec
-DELETE FROM book_favorites
-WHERE user_id = $1 AND book_id = $2;
+DELETE
+FROM book_favorites
+WHERE user_id = $1
+  AND book_id = $2;
 
 -- name: GetBooks :many
 SELECT *
@@ -62,3 +64,12 @@ WHERE (sqlc.narg(category_id)::int IS NULL OR c.id = sqlc.narg(category_id))
   AND (sqlc.narg(vendor_id)::int IS NULL OR b.vendor_id = sqlc.narg(vendor_id))
   AND (sqlc.narg(author_id)::int IS NULL OR a.id = sqlc.narg(author_id))
   AND (sqlc.narg(book_id)::int IS NULL OR b.id = sqlc.narg(book_id));
+
+-- name: GetFavoriteBooks :many
+
+SELECT id, title, price
+From books
+         JOIN book_favorites ON book_favorites.user_id = $1 AND books.id = book_favorites.book_id
+ORDER BY book_favorites.created_at DESC;
+
+

@@ -18,6 +18,8 @@ func RegisterBooksRoutes(r chi.Router) {
 	r.Get("/books", AuthMiddleware(Cfg.getBooksHandler))
 	r.Get("/books_details", AuthMiddleware(Cfg.getBooksDetailsHandler))
 	r.Post("/book_favorite", AuthMiddleware(Cfg.updateBookFavoriteHandler))
+	r.Get("/favorite_books", AuthMiddleware(Cfg.getFavoriteBooksHandler))
+
 }
 
 func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
@@ -218,4 +220,22 @@ func (apiCFG *ApiConfig) updateBookFavoriteHandler(w http.ResponseWriter, r *htt
 		helpers.RespondWithJSON(w, http.StatusOK, response)
 	}
 
+}
+
+func (apiCFG *ApiConfig) getFavoriteBooksHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+
+	db := apiCFG.DB
+
+	favBooks, err := db.GetFavoriteBooks(r.Context(), user.ID)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not fetch fav books")
+		return
+	}
+
+	response := map[string]interface{}{
+		"favorite_books": models.DBFavoriteBooksToBooks(favBooks),
+		"message":        "Favorite books gotten successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
 }

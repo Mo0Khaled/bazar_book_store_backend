@@ -8,13 +8,13 @@ import (
 
 type Book struct {
 	ID          int32     `json:"id"`
-	VendorID    int32     `json:"vendor_id"`
+	VendorID    int32     `json:"vendor_id,omitempty"`
 	Title       string    `json:"title"`
-	Description string    `json:"Description"`
+	Description string    `json:"description,omitempty"`
 	Price       float64   `json:"price"`
-	Rate        float64   `json:"rate"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Rate        float64   `json:"rate,omitempty"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
 
 type BookDetails struct {
@@ -54,6 +54,20 @@ func DBBooksToBooks(dbBooks []database.Book) []Book {
 	}
 
 	return books
+}
+
+func DBFavoriteBooksToBooks(dbBooks []database.GetFavoriteBooksRow) []Book {
+	favorites := make([]Book, len(dbBooks))
+
+	for i, dbBook := range dbBooks {
+		favorites[i] = DBBookToBook(database.Book{
+			ID:    dbBook.ID,
+			Title: dbBook.Title,
+			Price: dbBook.Price,
+		})
+	}
+
+	return favorites
 }
 
 func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) []BookDetails {
