@@ -3,7 +3,6 @@ package handlers
 import (
 	"bazar_book_store/helpers"
 	"bazar_book_store/internal/database"
-	"fmt"
 	"github.com/go-chi/chi/v5"
 	"mime/multipart"
 	"net/http"
@@ -14,7 +13,6 @@ func RegisterImageHandlers(r chi.Router) {
 }
 
 func (apiCFG *ApiConfig) uploadImageHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
-	fmt.Println("i am here?")
 	file, _, err := r.FormFile("image")
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusBadRequest, "Image isn't exists")

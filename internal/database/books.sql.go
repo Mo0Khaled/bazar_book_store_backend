@@ -58,9 +58,9 @@ func (q *Queries) AddBookFavorite(ctx context.Context, arg AddBookFavoriteParams
 
 const createBook = `-- name: CreateBook :one
 
-INSERT INTO books (vendor_id, title, description, price, rate)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, vendor_id, title, description, price, rate, created_at, updated_at
+INSERT INTO books (vendor_id, title, description, price, rate, avatar_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, vendor_id, title, description, price, rate, created_at, updated_at, avatar_url
 `
 
 type CreateBookParams struct {
@@ -69,6 +69,7 @@ type CreateBookParams struct {
 	Description string
 	Price       string
 	Rate        string
+	AvatarUrl   string
 }
 
 func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, error) {
@@ -78,6 +79,7 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 		arg.Description,
 		arg.Price,
 		arg.Rate,
+		arg.AvatarUrl,
 	)
 	var i Book
 	err := row.Scan(
@@ -89,12 +91,13 @@ func (q *Queries) CreateBook(ctx context.Context, arg CreateBookParams) (Book, e
 		&i.Rate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.AvatarUrl,
 	)
 	return i, err
 }
 
 const getBooks = `-- name: GetBooks :many
-SELECT id, vendor_id, title, description, price, rate, created_at, updated_at
+SELECT id, vendor_id, title, description, price, rate, created_at, updated_at, avatar_url
 FROM books
 ORDER BY id DESC
 `
@@ -117,6 +120,7 @@ func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
 			&i.Rate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.AvatarUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -133,9 +137,10 @@ func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
 
 const getBooksDetails = `-- name: GetBooksDetails :many
 
-SELECT b.id                     AS book_id,
+SELECT b.id                                                      AS book_id,
        b.title,
        b.description,
+       b.avatar_url                                              AS book_avatar_url,
        b.price,
        b.rate,
        b.vendor_id,
@@ -144,21 +149,21 @@ SELECT b.id                     AS book_id,
        b.updated_at,
 
 
-       v.id                     AS vendor_id,
-       v.name                   AS vendor_name,
-       v.avatar_url             AS vendor_avatar_url,
-       v.rate                   AS vendor_rate,
+       v.id                                                      AS vendor_id,
+       v.name                                                    AS vendor_name,
+       v.avatar_url                                              AS vendor_avatar_url,
+       v.rate                                                    AS vendor_rate,
 
-       a.id                     AS author_id,
-       a.name                   AS author_name,
-       a.short_description      AS author_short_description,
-       a.about                  AS author_about,
-       a.avatar_url             AS author_avatar_url,
-       a.rate                   AS author_rate,
+       a.id                                                      AS author_id,
+       a.name                                                    AS author_name,
+       a.short_description                                       AS author_short_description,
+       a.about                                                   AS author_about,
+       a.avatar_url                                              AS author_avatar_url,
+       a.rate                                                    AS author_rate,
        a.author_type,
 
-       c.id                     AS category_id,
-       c.name                   AS category_name
+       c.id                                                      AS category_id,
+       c.name                                                    AS category_name
 
 FROM books b
          JOIN vendors v ON b.vendor_id = v.id
@@ -187,6 +192,7 @@ type GetBooksDetailsRow struct {
 	BookID                 int32
 	Title                  string
 	Description            string
+	BookAvatarUrl          string
 	Price                  string
 	Rate                   string
 	VendorID               int32
@@ -227,6 +233,7 @@ func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams
 			&i.BookID,
 			&i.Title,
 			&i.Description,
+			&i.BookAvatarUrl,
 			&i.Price,
 			&i.Rate,
 			&i.VendorID,
@@ -262,16 +269,17 @@ func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams
 
 const getFavoriteBooks = `-- name: GetFavoriteBooks :many
 
-SELECT id, title, price
+SELECT id, title, price, avatar_url
 From books
          JOIN book_favorites ON book_favorites.user_id = $1 AND books.id = book_favorites.book_id
 ORDER BY book_favorites.created_at DESC
 `
 
 type GetFavoriteBooksRow struct {
-	ID    int32
-	Title string
-	Price string
+	ID        int32
+	Title     string
+	Price     string
+	AvatarUrl string
 }
 
 func (q *Queries) GetFavoriteBooks(ctx context.Context, userID int32) ([]GetFavoriteBooksRow, error) {
@@ -283,7 +291,12 @@ func (q *Queries) GetFavoriteBooks(ctx context.Context, userID int32) ([]GetFavo
 	var items []GetFavoriteBooksRow
 	for rows.Next() {
 		var i GetFavoriteBooksRow
-		if err := rows.Scan(&i.ID, &i.Title, &i.Price); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Price,
+			&i.AvatarUrl,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

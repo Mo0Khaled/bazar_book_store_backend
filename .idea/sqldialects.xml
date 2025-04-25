@@ -18,5 +18,6 @@
     <file url="file://$PROJECT_DIR$/sql/schema/00009_create_authors_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00010_create_book_authors_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00011_create_book_favorites_table.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/00012_alter_table_books_add_avatar_url_column.sql" dialect="PostgreSQL" />
   </component>
 </project>

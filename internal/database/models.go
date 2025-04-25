@@ -97,6 +97,7 @@ type Book struct {
 	Rate        string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	AvatarUrl   string
 }
 
 type BookAuthor struct {
