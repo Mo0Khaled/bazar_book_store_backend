@@ -13,16 +13,18 @@ import (
 )
 
 func main() {
+	log.Printf("Strting app")
+
 	err := godotenv.Load()
-	if err != nil {
-		return
-	}
+
 	portString := os.Getenv("PORT")
 	if portString == "" {
+		portString = "8081"
 		log.Fatal("$PORT must be set")
 	}
 
 	dbURL := os.Getenv("DB_URL")
+
 	if dbURL == "" {
 		log.Fatal("$DB_URL must be set")
 	}
