@@ -37,6 +37,8 @@ func main() {
 		DB: database.New(connection),
 	}
 
+	log.Printf("Starting server on conn db url %s", connection)
+
 	createdRouter := router.InitRouter(handlers.Cfg)
 	srv := &http.Server{
 		Handler: createdRouter,
