@@ -4,11 +4,11 @@ import (
 	"bazar_book_store/helpers"
 	"bazar_book_store/internal/api/models"
 	"bazar_book_store/internal/database"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/lib/pq"
+	"mime/multipart"
 	"net/http"
 	"strconv"
 )
@@ -23,42 +23,57 @@ func RegisterBooksRoutes(r chi.Router) {
 }
 
 func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
-	type parameters struct {
-		VendorID    int32   `json:"vendor_id"`
-		Title       string  `json:"title"`
-		Description string  `json:"description"`
-		Price       float64 `json:"price"`
-		Rate        float64 `json:"rate"`
-		Categories  []int32 `json:"categories"`
-		AuthorsIDs  []int32 `json:"authors_ids"`
-	}
+	vendorIDStr := r.FormValue("vendor_id")
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+	priceStr := r.FormValue("price")
+	rateStr := r.FormValue("rate")
+	categoriesStr := r.FormValue("categories")
+	authorsStr := r.FormValue("authors_ids")
 
-	decoder := json.NewDecoder(r.Body)
-	params := &parameters{}
-	err := decoder.Decode(params)
+	vendorID, _ := strconv.Atoi(vendorIDStr)
+	price, _ := strconv.ParseFloat(priceStr, 64)
+	rate, _ := strconv.ParseFloat(rateStr, 64)
 
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid request payload: %v", err))
-		return
-	}
+	categoriesIDs := helpers.ParseInt32JSON(categoriesStr)
+	authorsIDs := helpers.ParseInt32JSON(authorsStr)
 
-	if len(params.Categories) == 0 {
+	if len(categoriesIDs) == 0 {
 		helpers.RespondWithError(w, http.StatusBadRequest, "You must add atLeast one category")
 		return
 	}
-	if len(params.AuthorsIDs) == 0 {
+	if len(authorsIDs) == 0 {
 		helpers.RespondWithError(w, http.StatusBadRequest, "You must add atLeast one author")
+		return
+	}
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Image isn't exists")
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	imageURL, err := helpers.UploadImage(file)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not upload the image")
 		return
 	}
 
 	db := apiCFG.DB
 
 	book, err := db.CreateBook(r.Context(), database.CreateBookParams{
-		VendorID:    params.VendorID,
-		Title:       params.Title,
-		Description: params.Description,
-		Price:       strconv.FormatFloat(params.Price, 'f', 2, 64),
-		Rate:        strconv.FormatFloat(params.Rate, 'f', 2, 64),
+		VendorID:    int32(vendorID),
+		Title:       title,
+		Description: description,
+		Price:       strconv.FormatFloat(price, 'f', 2, 64),
+		Rate:        strconv.FormatFloat(rate, 'f', 2, 64),
+		AvatarUrl:   imageURL,
 	})
 
 	if err != nil {
@@ -79,7 +94,7 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 	var invalidCategories []int32
 	var validCategories []database.Category
 
-	for _, categoryID := range params.Categories {
+	for _, categoryID := range categoriesIDs {
 		category, err := db.GetCategoryByID(r.Context(), categoryID)
 		if err != nil {
 			invalidCategories = append(invalidCategories, categoryID)
@@ -98,7 +113,7 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var invalidAuthorsIDs []int32
-	for _, authorID := range params.AuthorsIDs {
+	for _, authorID := range authorsIDs {
 		err := db.AddBookAuthor(r.Context(), database.AddBookAuthorParams{
 			BookID:   book.ID,
 			AuthorID: authorID,

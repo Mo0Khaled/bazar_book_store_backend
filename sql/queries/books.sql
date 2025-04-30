@@ -1,7 +1,7 @@
 -- name: CreateBook :one
 
-INSERT INTO books (vendor_id, title, description, price, rate)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO books (vendor_id, title, description, price, rate, avatar_url)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: AddBookCategory :exec
@@ -29,9 +29,10 @@ ORDER BY id DESC;
 
 -- name: GetBooksDetails :many
 
-SELECT b.id                     AS book_id,
+SELECT b.id                                                      AS book_id,
        b.title,
        b.description,
+       b.avatar_url                                              AS book_avatar_url,
        b.price,
        b.rate,
        b.vendor_id,
@@ -40,21 +41,21 @@ SELECT b.id                     AS book_id,
        b.updated_at,
 
 
-       v.id                     AS vendor_id,
-       v.name                   AS vendor_name,
-       v.avatar_url             AS vendor_avatar_url,
-       v.rate                   AS vendor_rate,
+       v.id                                                      AS vendor_id,
+       v.name                                                    AS vendor_name,
+       v.avatar_url                                              AS vendor_avatar_url,
+       v.rate                                                    AS vendor_rate,
 
-       a.id                     AS author_id,
-       a.name                   AS author_name,
-       a.short_description      AS author_short_description,
-       a.about                  AS author_about,
-       a.avatar_url             AS author_avatar_url,
-       a.rate                   AS author_rate,
+       a.id                                                      AS author_id,
+       a.name                                                    AS author_name,
+       a.short_description                                       AS author_short_description,
+       a.about                                                   AS author_about,
+       a.avatar_url                                              AS author_avatar_url,
+       a.rate                                                    AS author_rate,
        a.author_type,
 
-       c.id                     AS category_id,
-       c.name                   AS category_name
+       c.id                                                      AS category_id,
+       c.name                                                    AS category_name
 
 FROM books b
          JOIN vendors v ON b.vendor_id = v.id
@@ -72,7 +73,7 @@ WHERE (sqlc.narg(category_id)::int IS NULL OR c.id = sqlc.narg(category_id))
 
 -- name: GetFavoriteBooks :many
 
-SELECT id, title, price
+SELECT id, title, price, avatar_url
 From books
          JOIN book_favorites ON book_favorites.user_id = $1 AND books.id = book_favorites.book_id
 ORDER BY book_favorites.created_at DESC;

@@ -21,7 +21,5 @@ EXPOSE 8081
 
 # Command to run the executable
 CMD ["./main"]
-RUN apt-get update && apt-get install -y postgresql-client
+#RUN apt-get update && apt-get install -y postgresql-client
 
-ENV DB_URL=${DB_URL}
-ENV PORT=8081

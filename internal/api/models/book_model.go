@@ -14,6 +14,7 @@ type Book struct {
 	Price       float64   `json:"price"`
 	Rate        float64   `json:"rate,omitempty"`
 	IsFavorite  *bool     `json:"is_favorite,omitempty"`
+	AvatarURL   string    `json:"avatar_url"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
@@ -44,6 +45,7 @@ func DBBookToBook(dbBook database.Book) Book {
 		Rate:        rateValue,
 		CreatedAt:   dbBook.CreatedAt,
 		UpdatedAt:   dbBook.UpdatedAt,
+		AvatarURL:   dbBook.AvatarUrl,
 	}
 }
 
@@ -62,9 +64,10 @@ func DBFavoriteBooksToBooks(dbBooks []database.GetFavoriteBooksRow) []Book {
 
 	for i, dbBook := range dbBooks {
 		favorites[i] = DBBookToBook(database.Book{
-			ID:    dbBook.ID,
-			Title: dbBook.Title,
-			Price: dbBook.Price,
+			ID:        dbBook.ID,
+			Title:     dbBook.Title,
+			Price:     dbBook.Price,
+			AvatarUrl: dbBook.AvatarUrl,
 		})
 	}
 
@@ -94,6 +97,7 @@ func DBBooksDetailsToBooksDetails(dbBooksDetails []database.GetBooksDetailsRow) 
 					Description: dbBookDetails.Description,
 					Price:       dbBookDetails.Price,
 					Rate:        dbBookDetails.Rate,
+					AvatarUrl:   dbBookDetails.BookAvatarUrl,
 					CreatedAt:   dbBookDetails.CreatedAt,
 					UpdatedAt:   dbBookDetails.UpdatedAt,
 				}),
