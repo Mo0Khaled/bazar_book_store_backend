@@ -167,15 +167,19 @@ func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.R
 	vendorID := helpers.StringToNullInt32(r.URL.Query().Get("vendor_id"))
 	authorID := helpers.StringToNullInt32(r.URL.Query().Get("author_id"))
 	bookID := helpers.StringToNullInt32(r.URL.Query().Get("book_id"))
+	page, limit, offset := helpers.GetPaginationFromRequest(r)
 
 	db := apiCFG.DB
+	totalItems, err := db.CountBooks(r.Context())
 
 	booksDetails, err := db.GetBooksDetails(r.Context(), database.GetBooksDetailsParams{
+		UserID:     user.ID,
 		CategoryID: categoryID,
 		VendorID:   vendorID,
 		AuthorID:   authorID,
 		BookID:     bookID,
-		UserID:     user.ID,
+		Limit:      int32(limit),
+		Offset:     int32(offset),
 	})
 
 	if err != nil {
@@ -192,8 +196,9 @@ func (apiCFG *ApiConfig) getBooksDetailsHandler(w http.ResponseWriter, r *http.R
 			books = []models.BookDetails{}
 		}
 		response := map[string]interface{}{
-			"books":   books,
-			"message": "Books gotten successfully",
+			"books":      books,
+			"pagination": models.ToPaginated(page, limit, int(totalItems)),
+			"message":    "Books gotten successfully",
 		}
 		helpers.RespondWithJSON(w, http.StatusOK, response)
 	}

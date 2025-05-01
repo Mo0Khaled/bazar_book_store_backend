@@ -192,14 +192,17 @@ FROM books b
          LEFT JOIN book_favorites bf
                    ON b.id = bf.book_id
                        AND user_id = $1
-WHERE ($2::int IS NULL OR c.id = $2)
-  AND ($3::int IS NULL OR b.vendor_id = $3)
-  AND ($4::int IS NULL OR a.id = $4)
-  AND ($5::int IS NULL OR b.id = $5)
+WHERE ($4::int IS NULL OR c.id = $4)
+  AND ($5::int IS NULL OR b.vendor_id = $5)
+  AND ($6::int IS NULL OR a.id = $6)
+  AND ($7::int IS NULL OR b.id = $7)
+LIMIT $2 OFFSET $3
 `
 
 type GetBooksDetailsParams struct {
 	UserID     int32
+	Limit      int32
+	Offset     int32
 	CategoryID sql.NullInt32
 	VendorID   sql.NullInt32
 	AuthorID   sql.NullInt32
@@ -235,6 +238,8 @@ type GetBooksDetailsRow struct {
 func (q *Queries) GetBooksDetails(ctx context.Context, arg GetBooksDetailsParams) ([]GetBooksDetailsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getBooksDetails,
 		arg.UserID,
+		arg.Limit,
+		arg.Offset,
 		arg.CategoryID,
 		arg.VendorID,
 		arg.AuthorID,

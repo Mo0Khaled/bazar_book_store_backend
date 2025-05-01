@@ -75,7 +75,8 @@ FROM books b
 WHERE (sqlc.narg(category_id)::int IS NULL OR c.id = sqlc.narg(category_id))
   AND (sqlc.narg(vendor_id)::int IS NULL OR b.vendor_id = sqlc.narg(vendor_id))
   AND (sqlc.narg(author_id)::int IS NULL OR a.id = sqlc.narg(author_id))
-  AND (sqlc.narg(book_id)::int IS NULL OR b.id = sqlc.narg(book_id));
+  AND (sqlc.narg(book_id)::int IS NULL OR b.id = sqlc.narg(book_id))
+LIMIT $2 OFFSET $3;
 
 -- name: GetFavoriteBooks :many
 
