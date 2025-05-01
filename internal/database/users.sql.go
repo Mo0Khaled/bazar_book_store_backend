@@ -14,7 +14,7 @@ const createUser = `-- name: CreateUser :one
 
 INSERT INTO users
     (id, name, email, password_hash, avatar_url, is_admin)
-VALUES (DEFAULT, $1, $2, $3, $4,$5)
+VALUES (DEFAULT, $1, $2, $3, $4, $5)
 RETURNING id, name, email, password_hash, avatar_url, created_at, updated_at, is_admin
 `
 
@@ -92,4 +92,21 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.IsAdmin,
 	)
 	return i, err
+}
+
+const updateUserImage = `-- name: UpdateUserImage :exec
+
+UPDATE users
+SET avatar_url = $2
+WHERE id = $1
+`
+
+type UpdateUserImageParams struct {
+	ID        int32
+	AvatarUrl sql.NullString
+}
+
+func (q *Queries) UpdateUserImage(ctx context.Context, arg UpdateUserImageParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserImage, arg.ID, arg.AvatarUrl)
+	return err
 }

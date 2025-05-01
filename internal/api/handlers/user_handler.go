@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
+	"mime/multipart"
 	"net/http"
 )
 
 func RegisterUserRoutes(r chi.Router) {
 	r.Post("/register", Cfg.createUserHandler)
 	r.Post("/login", Cfg.loginUserHandler)
+	r.Post("/user/update-image", AuthMiddleware(Cfg.updateUserImageHandler))
 
 }
 
@@ -106,6 +108,43 @@ func (apiCFG *ApiConfig) loginUserHandler(w http.ResponseWriter, r *http.Request
 		"user":    models.DBUserToUser(user),
 		"token":   userToken,
 		"message": "User signed in successfully",
+	}
+	helpers.RespondWithJSON(w, http.StatusOK, response)
+}
+
+func (apiCFG *ApiConfig) updateUserImageHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Image isn't exists")
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	imageURL, err := helpers.UploadImage(file)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not upload the image")
+		return
+	}
+	db := apiCFG.DB
+
+	err = db.UpdateUserImage(r.Context(), database.UpdateUserImageParams{
+		ID:        user.ID,
+		AvatarUrl: helpers.ToNullString(&imageURL),
+	})
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Couldn't update user image")
+		return
+	}
+
+	response := map[string]interface{}{
+		"image_url": imageURL,
+		"message":   "User image updated successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
