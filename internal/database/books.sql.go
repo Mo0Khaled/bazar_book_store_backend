@@ -56,6 +56,18 @@ func (q *Queries) AddBookFavorite(ctx context.Context, arg AddBookFavoriteParams
 	return err
 }
 
+const countBooks = `-- name: CountBooks :one
+SELECT COUNT(*)
+FROM books
+`
+
+func (q *Queries) CountBooks(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countBooks)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createBook = `-- name: CreateBook :one
 
 INSERT INTO books (vendor_id, title, description, price, rate, avatar_url)
@@ -100,10 +112,16 @@ const getBooks = `-- name: GetBooks :many
 SELECT id, vendor_id, title, description, price, rate, created_at, updated_at, avatar_url
 FROM books
 ORDER BY id DESC
+LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) GetBooks(ctx context.Context) ([]Book, error) {
-	rows, err := q.db.QueryContext(ctx, getBooks)
+type GetBooksParams struct {
+	Limit  int32
+	Offset int32
+}
+
+func (q *Queries) GetBooks(ctx context.Context, arg GetBooksParams) ([]Book, error) {
+	rows, err := q.db.QueryContext(ctx, getBooks, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

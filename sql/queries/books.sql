@@ -25,7 +25,13 @@ WHERE user_id = $1
 -- name: GetBooks :many
 SELECT *
 FROM books
-ORDER BY id DESC;
+ORDER BY id DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountBooks :one
+SELECT COUNT(*)
+FROM books;
+
 
 -- name: GetBooksDetails :many
 

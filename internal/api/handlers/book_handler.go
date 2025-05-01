@@ -139,9 +139,15 @@ func (apiCFG *ApiConfig) createBookHandler(w http.ResponseWriter, r *http.Reques
 
 func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
 
-	db := apiCFG.DB
+	page, limit, offset := helpers.GetPaginationFromRequest(r)
 
-	books, err := db.GetBooks(r.Context())
+	db := apiCFG.DB
+	totalItems, err := db.CountBooks(r.Context())
+
+	books, err := db.GetBooks(r.Context(), database.GetBooksParams{
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not fetch books")
@@ -149,8 +155,9 @@ func (apiCFG *ApiConfig) getBooksHandler(w http.ResponseWriter, r *http.Request,
 	}
 
 	response := map[string]interface{}{
-		"books":   models.DBBooksToBooks(books),
-		"message": "Books gotten successfully",
+		"books":      models.DBBooksToBooks(books),
+		"pagination": models.ToPaginated(page, limit, int(totalItems)),
+		"message":    "Books gotten successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
