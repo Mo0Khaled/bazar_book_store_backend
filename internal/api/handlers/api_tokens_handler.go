@@ -2,67 +2,41 @@ package handlers
 
 import (
 	"bazar_book_store/helpers"
-	"bazar_book_store/internal/api/models"
 	"bazar_book_store/internal/database"
 	"github.com/go-chi/chi/v5"
 	"net/http"
-	"strconv"
+	"time"
 )
 
-func RegisterCategoryRoutes(r chi.Router) {
-	r.Post("/categories", AdminOnlyMiddleware(Cfg.createCategoryHandler))
-	r.Get("/category/{categoryID}", AuthMiddleware(Cfg.getCategoryHandler))
+func RegisterApiTokensRoutes(r chi.Router) {
+	r.Post("/generate-api-token", AdminOnlyMiddleware(Cfg.createApiTokenHandler))
 
 }
 
-func (apiCFG *ApiConfig) createCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
-	type parameters struct {
-		Name string `json:"name"`
-	}
+func (apiCFG *ApiConfig) createApiTokenHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+	db := apiCFG.DB
 
-	params, ok := helpers.DecodeBody[parameters](w, r)
-	if !ok {
+	token, err := helpers.GenerateAPIToken()
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Something went wrong!")
 		return
 	}
 
-	db := apiCFG.DB
-
-	category, err := db.CreateCategory(r.Context(), params.Name)
+	tokenData, err := db.CreateApiToken(r.Context(), database.CreateApiTokenParams{
+		ApiToken:     token,
+		RequestLimit: 5000,
+		ExpiresAt:    time.Now().AddDate(1, 0, 0),
+	})
 
 	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not create category")
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not create api token")
 		return
 	}
 
 	response := map[string]interface{}{
-		"category": models.DBCategoryToCategory(category),
-		"message":  "Book created successfully",
+		"token_data": tokenData,
+		"message":    "Token created successfully",
 	}
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
-}
-
-func (apiCFG *ApiConfig) getCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
-	categoryIDStr := chi.URLParam(r, "categoryID")
-
-	categoryID, err := strconv.Atoi(categoryIDStr)
-
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusForbidden, "wrong category ID")
-		return
-	}
-
-	db := apiCFG.DB
-
-	category, err := db.GetCategoryByID(r.Context(), int32(categoryID))
-
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not fetch category")
-		return
-	}
-
-	response := map[string]interface{}{
-		"category": models.DBCategoryToCategory(category),
-		"message":  "Category gotten successfully",
-	}
-	helpers.RespondWithJSON(w, http.StatusOK, response)
 }

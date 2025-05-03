@@ -1,11 +1,12 @@
--- name: CreateCategory :one
+-- name: CreateApiToken :one
 
-INSERT INTO categories (name)
-VALUES ($1)
+INSERT INTO api_tokens (api_token, expires_at, request_limit, last_reset)
+VALUES ($1, $2, $3, $4)
 RETURNING *;
 
--- name: GetCategoryByID :one
+
+-- name: GetApiToken :one
 
 SELECT *
-FROM categories
-WHERE id = $1;
+FROM api_tokens
+WHERE api_token = $1;

@@ -76,6 +76,14 @@ type Address struct {
 	UpdatedAt      time.Time
 }
 
+type ApiToken struct {
+	ApiToken     string
+	CreatedAt    sql.NullTime
+	ExpiresAt    time.Time
+	RequestLimit int32
+	LastReset    sql.NullTime
+}
+
 type Author struct {
 	ID               int32
 	Name             string

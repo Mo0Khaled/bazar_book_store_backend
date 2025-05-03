@@ -27,6 +27,7 @@ func InitRouter(cf *handlers.ApiConfig) *chi.Mux {
 	handlers.RegisterCategoryRoutes(v1Router)
 	handlers.RegisterAuthorRoutes(v1Router)
 	handlers.RegisterImageHandlers(v1Router)
+	handlers.RegisterApiTokensRoutes(v1Router)
 	r.Mount("/v1", v1Router)
 
 	return r
