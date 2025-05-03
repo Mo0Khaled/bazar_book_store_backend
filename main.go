@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/redis/go-redis/v9"
 	"log"
 	"net/http"
 	"os"
@@ -33,11 +34,15 @@ func main() {
 		log.Fatal(err)
 		return
 	}
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_ADDR"),
+		Password: "",
+		DB:       0,
+	})
 	handlers.Cfg = &handlers.ApiConfig{
-		DB: database.New(connection),
+		DB:  database.New(connection),
+		RDB: rdb,
 	}
-
-	log.Printf("Starting server on conn db url %s", connection)
 
 	createdRouter := router.InitRouter(handlers.Cfg)
 	srv := &http.Server{
