@@ -2,6 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/sql/queries/addresses.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/queries/api_tokens.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/authors.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/books.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/categories.sql" dialect="PostgreSQL" />
@@ -19,5 +20,6 @@
     <file url="file://$PROJECT_DIR$/sql/schema/00010_create_book_authors_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00011_create_book_favorites_table.sql" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00012_alter_table_books_add_avatar_url_column.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/00013_create_api_tokens_table.sql" dialect="PostgreSQL" />
   </component>
 </project>

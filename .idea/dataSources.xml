@@ -15,5 +15,12 @@
       <jdbc-url>jdbc:postgresql://localhost:5433/bazar_db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="redis-book-store@localhost" uuid="d3ee5b37-dfeb-4fa3-87c6-98191f3f5c80">
+      <driver-ref>redis</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>jdbc.RedisDriver</jdbc-driver>
+      <jdbc-url>jdbc:redis://localhost:6379/0</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

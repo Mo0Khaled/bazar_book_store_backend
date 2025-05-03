@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 type authedHandler func(w http.ResponseWriter, r *http.Request, user database.User)
@@ -54,6 +55,11 @@ func AuthMiddleware(handler authedHandler) http.HandlerFunc {
 			helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid credentials")
 			return
 		}
+
+		if CheckRateLimit(w, r, user.IsAdmin) == false {
+			return
+		}
+
 		handler(w, r, user)
 	}
 }
@@ -66,4 +72,48 @@ func AdminOnlyMiddleware(handler authedHandler) http.HandlerFunc {
 		}
 		handler(w, r, user)
 	})
+}
+
+func CheckRateLimit(w http.ResponseWriter, r *http.Request, isAdmin bool) bool {
+	if isAdmin {
+		return true
+	}
+
+	rdb := Cfg.RDB
+	db := Cfg.DB
+
+	token := r.Header.Get("API-Token")
+	if token == "" {
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Missing API token")
+		return false
+	}
+
+	apiToken, err := db.GetApiToken(r.Context(), token)
+
+	if err != nil || apiToken.ExpiresAt.Before(time.Now()) {
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid or expired token")
+		return false
+	}
+
+	monthKey := time.Now().Format("2006-01")
+	key := fmt.Sprintf("rate_limit:%s:%s", token, monthKey)
+
+	count, err := rdb.Incr(r.Context(), key).Result()
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Rate limit error")
+		return false
+	}
+
+	if count == 1 {
+		now := time.Now()
+		firstOfNextMonth := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, now.Location())
+		ttl := time.Until(firstOfNextMonth)
+		rdb.Expire(r.Context(), key, ttl)
+	}
+
+	if int32(count) > apiToken.RequestLimit {
+		helpers.RespondWithError(w, http.StatusTooManyRequests, "Rate limit exceeded")
+		return false
+	}
+	return true
 }
