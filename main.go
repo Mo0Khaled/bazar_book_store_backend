@@ -5,6 +5,7 @@ import (
 	"bazar_book_store/internal/api/router"
 	"bazar_book_store/internal/database"
 	"database/sql"
+	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
@@ -39,6 +40,13 @@ func main() {
 		Password: "",
 		DB:       0,
 	})
+	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	if err != nil {
+		log.Printf("Failed to parse Redis URL: %v", err)
+	} else {
+		fmt.Println(os.Getenv("REDIS_URL"))
+		rdb = redis.NewClient(opt)
+	}
 	handlers.Cfg = &handlers.ApiConfig{
 		DB:  database.New(connection),
 		RDB: rdb,
