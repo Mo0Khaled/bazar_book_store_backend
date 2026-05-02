@@ -6,16 +6,8 @@ import (
 )
 
 type ApiConfig struct {
-	DB  database.Querier
+	DB  *database.Queries
 	RDB *redis.Client
 }
 
 var Cfg *ApiConfig
-
-type Handler struct {
-	Cfg *ApiConfig
-}
-
-func NewHandler(cfg *ApiConfig) *Handler {
-	return &Handler{Cfg: cfg}
-}
