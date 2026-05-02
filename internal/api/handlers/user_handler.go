@@ -12,14 +12,14 @@ import (
 	"net/http"
 )
 
-func RegisterUserRoutes(r chi.Router, h *Handler) {
-	r.Post("/register", h.createUserHandler)
-	r.Post("/login", h.loginUserHandler)
-	r.Post("/user/update-image", AuthMiddleware(h.updateUserImageHandler))
+func RegisterUserRoutes(r chi.Router) {
+	r.Post("/register", Cfg.createUserHandler)
+	r.Post("/login", Cfg.loginUserHandler)
+	r.Post("/user/update-image", AuthMiddleware(Cfg.updateUserImageHandler))
 
 }
 
-func (h *Handler) createUserHandler(w http.ResponseWriter, r *http.Request) {
+func (apiCFG *ApiConfig) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Name     string `json:"name"`
 		Email    string `json:"email"`
@@ -35,7 +35,7 @@ func (h *Handler) createUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := h.Cfg.DB
+	db := apiCFG.DB
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -68,7 +68,7 @@ func (h *Handler) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
 }
 
-func (h *Handler) loginUserHandler(w http.ResponseWriter, r *http.Request) {
+func (apiCFG *ApiConfig) loginUserHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
@@ -83,7 +83,7 @@ func (h *Handler) loginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := h.Cfg.DB
+	db := apiCFG.DB
 
 	user, err := db.GetUserByEmail(r.Context(), params.Email)
 
@@ -112,7 +112,7 @@ func (h *Handler) loginUserHandler(w http.ResponseWriter, r *http.Request) {
 	helpers.RespondWithJSON(w, http.StatusOK, response)
 }
 
-func (h *Handler) updateUserImageHandler(w http.ResponseWriter, r *http.Request, user database.User) {
+func (apiCFG *ApiConfig) updateUserImageHandler(w http.ResponseWriter, r *http.Request, user database.User) {
 	file, _, err := r.FormFile("image")
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusBadRequest, "Image isn't exists")
@@ -130,7 +130,7 @@ func (h *Handler) updateUserImageHandler(w http.ResponseWriter, r *http.Request,
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Could not upload the image")
 		return
 	}
-	db := h.Cfg.DB
+	db := apiCFG.DB
 
 	err = db.UpdateUserImage(r.Context(), database.UpdateUserImageParams{
 		ID:        user.ID,

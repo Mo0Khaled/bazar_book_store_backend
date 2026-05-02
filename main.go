@@ -47,14 +47,12 @@ func main() {
 		fmt.Println(os.Getenv("REDIS_URL"))
 		rdb = redis.NewClient(opt)
 	}
-	cfg := &handlers.ApiConfig{
+	handlers.Cfg = &handlers.ApiConfig{
 		DB:  database.New(connection),
 		RDB: rdb,
 	}
 
-	handler := handlers.NewHandler(cfg)
-
-	createdRouter := router.InitRouter(handler)
+	createdRouter := router.InitRouter(handlers.Cfg)
 	srv := &http.Server{
 		Handler: createdRouter,
 		Addr:    ":" + portString,
