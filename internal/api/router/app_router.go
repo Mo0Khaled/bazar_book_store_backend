@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func InitRouter(cf *handlers.ApiConfig) *chi.Mux {
+func InitRouter(h *handlers.Handler) *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(
 		cors.Handler(
@@ -20,11 +20,11 @@ func InitRouter(cf *handlers.ApiConfig) *chi.Mux {
 			}),
 	)
 	v1Router := chi.NewRouter()
-	handlers.RegisterUserRoutes(v1Router)
+	handlers.RegisterUserRoutes(v1Router, h)
 	handlers.RegisterAddressRoutes(v1Router)
 	handlers.RegisterVendorsRoutes(v1Router)
 	handlers.RegisterBooksRoutes(v1Router)
-	handlers.RegisterCategoryRoutes(v1Router)
+	handlers.RegisterCategoryRoutes(v1Router, h)
 	handlers.RegisterAuthorRoutes(v1Router)
 	handlers.RegisterImageHandlers(v1Router)
 	handlers.RegisterApiTokensRoutes(v1Router)

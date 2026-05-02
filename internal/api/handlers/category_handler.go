@@ -9,13 +9,13 @@ import (
 	"strconv"
 )
 
-func RegisterCategoryRoutes(r chi.Router) {
-	r.Post("/categories", AdminOnlyMiddleware(Cfg.createCategoryHandler))
-	r.Get("/category/{categoryID}", AuthMiddleware(Cfg.getCategoryHandler))
+func RegisterCategoryRoutes(r chi.Router, h *Handler) {
+	r.Post("/categories", AdminOnlyMiddleware(h.createCategoryHandler))
+	r.Get("/category/{categoryID}", AuthMiddleware(h.getCategoryHandler))
 
 }
 
-func (apiCFG *ApiConfig) createCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+func (h *Handler) createCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
 	type parameters struct {
 		Name string `json:"name"`
 	}
@@ -25,7 +25,7 @@ func (apiCFG *ApiConfig) createCategoryHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	db := apiCFG.DB
+	db := h.Cfg.DB
 
 	category, err := db.CreateCategory(r.Context(), params.Name)
 
@@ -41,7 +41,7 @@ func (apiCFG *ApiConfig) createCategoryHandler(w http.ResponseWriter, r *http.Re
 	helpers.RespondWithJSON(w, http.StatusCreated, response)
 }
 
-func (apiCFG *ApiConfig) getCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
+func (h *Handler) getCategoryHandler(w http.ResponseWriter, r *http.Request, _ database.User) {
 	categoryIDStr := chi.URLParam(r, "categoryID")
 
 	categoryID, err := strconv.Atoi(categoryIDStr)
@@ -51,7 +51,7 @@ func (apiCFG *ApiConfig) getCategoryHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	db := apiCFG.DB
+	db := h.Cfg.DB
 
 	category, err := db.GetCategoryByID(r.Context(), int32(categoryID))
 
